@@ -1,174 +1,289 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, AlertCircle, CheckCircle2, Brain, Heart, Shield } from 'lucide-react';
-
-const CommunicationToolkit = () => {
-  const [activeSection, setActiveSection] = useState('pause');
-  const [checkedItems, setCheckedItems] = useState({});
-
-  const toggleCheck = (id) => {
-    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const sections = {
-    pause: {
-      title: "The Pause Toolkit",
-      icon: <Shield className="w-5 h-5" />,
-      color: "bg-blue-500",
-      content: [
-        {
-          subtitle: "In-the-Moment Strategies",
-          items: [
-            { id: "breathe", text: "Take 3 deep breaths before responding", tip: "This activates your parasympathetic nervous system" },
-            { id: "count", text: "Count to 10 silently", tip: "Gives your prefrontal cortex time to engage" },
-            { id: "phrase", text: "Use the phrase: 'Let me think about that for a moment'", tip: "Buys you time without seeming defensive" },
-            { id: "body", text: "Notice physical tension (jaw, shoulders, fists)", tip: "Body awareness helps catch reactions early" }
-          ]
-        },
-        {
-          subtitle: "Emergency Exits",
-          items: [
-            { id: "bathroom", text: "Ask for a bathroom break", tip: "Socially acceptable way to step away" },
-            { id: "notes", text: "Say 'I want to write this down' and pause to 'take notes'", tip: "Looks engaged while giving you space" },
-            { id: "reschedule", text: "Suggest continuing the conversation later", tip: "When emotions are too high to be productive" }
-          ]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Toolkit</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
         }
-      ]
-    },
-    reframe: {
-      title: "Feedback Reframing",
-      icon: <Brain className="w-5 h-5" />,
-      color: "bg-green-500",
-      content: [
-        {
-          subtitle: "Mental Shifts",
-          items: [
-            { id: "curious", text: "Replace 'They're attacking me' with 'They're sharing information'", tip: "Most feedback isn't personal, even when it feels that way" },
-            { id: "growth", text: "Think 'This could help me improve' instead of 'This means I'm bad'", tip: "Growth mindset reduces defensiveness" },
-            { id: "partial", text: "Look for even 10% truth in the feedback", tip: "You don't have to accept it all, but find what's useful" },
-            { id: "intention", text: "Assume positive intent (they want to help, not hurt)", tip: "Changes your entire emotional response" }
-          ]
-        },
-        {
-          subtitle: "Useful Responses",
-          items: [
-            { id: "clarify", text: "'Can you help me understand what success would look like?'", tip: "Shifts from criticism to collaboration" },
-            { id: "example", text: "'Could you give me a specific example?'", tip: "Makes feedback concrete and actionable" },
-            { id: "appreciate", text: "'I appreciate you taking the time to share this'", tip: "Even if you disagree, you can appreciate their effort" }
-          ]
+        .back-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+            text-decoration: none;
+            display: inline-block;
         }
-      ]
-    },
-    resistance: {
-      title: "Working with Resistance",
-      icon: <Heart className="w-5 h-5" />,
-      color: "bg-purple-500",
-      content: [
-        {
-          subtitle: "Understanding Your Resistance",
-          items: [
-            { id: "threat", text: "Ask yourself: 'What feels threatened right now?'", tip: "Identity, competence, autonomy, or belonging?" },
-            { id: "past", text: "Notice if this reminds you of past experiences", tip: "Present reactions often have historical roots" },
-            { id: "values", text: "Check if the suggestion conflicts with your core values", tip: "Sometimes resistance protects important boundaries" }
-          ]
-        },
-        {
-          subtitle: "Healthy Responses",
-          items: [
-            { id: "partial2", text: "Say 'I'm open to part of that idea'", tip: "Acknowledges validity without full agreement" },
-            { id: "concerns", text: "Share your concerns: 'My worry about that approach is...'", tip: "Explains resistance without rejecting outright" },
-            { id: "alternative", text: "Offer alternatives: 'What if we tried...'", tip: "Shows engagement and problem-solving" }
-          ]
+        .back-btn:hover {
+            background: #5a6fd8;
         }
-      ]
-    }
-  };
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-btn">← Back to Blog</a>
+    <div id="root"></div>
 
-  return (
-    <div className="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Communication Toolkit</h1>
-        <p className="text-gray-600">Tools for managing emotional reactions and building resilient communication</p>
-      </div>
+    <script type="text/babel">
+        const { useState } = React;
+        
+        const CommunicationToolkit = () => {
+            const [activeSection, setActiveSection] = useState('pause');
+            const [checkedItems, setCheckedItems] = useState({});
 
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        {Object.entries(sections).map(([key, section]) => (
-          <button
-            key={key}
-            onClick={() => setActiveSection(key)}
-            className={`p-4 rounded-lg border-2 transition-all duration-200 ${
-              activeSection === key 
-                ? `${section.color} text-white border-transparent` 
-                : 'bg-white hover:bg-gray-50 border-gray-200'
-            }`}
-          >
-            <div className="flex items-center justify-center mb-2">
-              {section.icon}
-            </div>
-            <h3 className="font-semibold text-center">{section.title}</h3>
-          </button>
-        ))}
-      </div>
+            const toggleCheck = (id) => {
+                setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
+            };
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <div className="flex items-center mb-6">
-          <div className={`p-3 rounded-full ${sections[activeSection].color} text-white mr-4`}>
-            {sections[activeSection].icon}
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800">{sections[activeSection].title}</h2>
-        </div>
+            const sections = {
+                pause: {
+                    title: "The Pause Toolkit",
+                    color: "bg-blue-500",
+                    content: [
+                        {
+                            subtitle: "In-the-Moment Strategies",
+                            items: [
+                                { id: "breathe", text: "Take 3 deep breaths before responding", tip: "This activates your parasympathetic nervous system" },
+                                { id: "count", text: "Count to 10 silently", tip: "Gives your prefrontal cortex time to engage" },
+                                { id: "phrase", text: "Use the phrase: 'Let me think about that for a moment'", tip: "Buys you time without seeming defensive" },
+                                { id: "body", text: "Notice physical tension (jaw, shoulders, fists)", tip: "Body awareness helps catch reactions early" }
+                            ]
+                        },
+                        {
+                            subtitle: "Emergency Exits",
+                            items: [
+                                { id: "bathroom", text: "Ask for a bathroom break", tip: "Socially acceptable way to step away" },
+                                { id: "notes", text: "Say 'I want to write this down' and pause to 'take notes'", tip: "Looks engaged while giving you space" },
+                                { id: "reschedule", text: "Suggest continuing the conversation later", tip: "When emotions are too high to be productive" }
+                            ]
+                        }
+                    ]
+                },
+                reframe: {
+                    title: "Feedback Reframing",
+                    color: "bg-green-500",
+                    content: [
+                        {
+                            subtitle: "Mental Shifts",
+                            items: [
+                                { id: "curious", text: "Replace 'They're attacking me' with 'They're sharing information'", tip: "Most feedback isn't personal, even when it feels that way" },
+                                { id: "growth", text: "Think 'This could help me improve' instead of 'This means I'm bad'", tip: "Growth mindset reduces defensiveness" },
+                                { id: "partial", text: "Look for even 10% truth in the feedback", tip: "You don't have to accept it all, but find what's useful" },
+                                { id: "intention", text: "Assume positive intent (they want to help, not hurt)", tip: "Changes your entire emotional response" }
+                            ]
+                        },
+                        {
+                            subtitle: "Useful Responses",
+                            items: [
+                                { id: "clarify", text: "'Can you help me understand what success would look like?'", tip: "Shifts from criticism to collaboration" },
+                                { id: "example", text: "'Could you give me a specific example?'", tip: "Makes feedback concrete and actionable" },
+                                { id: "appreciate", text: "'I appreciate you taking the time to share this'", tip: "Even if you disagree, you can appreciate their effort" }
+                            ]
+                        }
+                    ]
+                },
+                resistance: {
+                    title: "Working with Resistance",
+                    color: "bg-purple-500",
+                    content: [
+                        {
+                            subtitle: "Understanding Your Resistance",
+                            items: [
+                                { id: "threat", text: "Ask yourself: 'What feels threatened right now?'", tip: "Identity, competence, autonomy, or belonging?" },
+                                { id: "past", text: "Notice if this reminds you of past experiences", tip: "Present reactions often have historical roots" },
+                                { id: "values", text: "Check if the suggestion conflicts with your core values", tip: "Sometimes resistance protects important boundaries" }
+                            ]
+                        },
+                        {
+                            subtitle: "Healthy Responses",
+                            items: [
+                                { id: "partial2", text: "Say 'I'm open to part of that idea'", tip: "Acknowledges validity without full agreement" },
+                                { id: "concerns", text: "Share your concerns: 'My worry about that approach is...'", tip: "Explains resistance without rejecting outright" },
+                                { id: "alternative", text: "Offer alternatives: 'What if we tried...'", tip: "Shows engagement and problem-solving" }
+                            ]
+                        }
+                    ]
+                }
+            };
 
-        <div className="space-y-6">
-          {sections[activeSection].content.map((subsection, idx) => (
-            <div key={idx}>
-              <h3 className="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
-                {subsection.subtitle}
-              </h3>
-              <div className="space-y-3">
-                {subsection.items.map((item) => (
-                  <div 
-                    key={item.id}
-                    className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    <button
-                      onClick={() => toggleCheck(item.id)}
-                      className="mt-1 flex-shrink-0"
-                    >
-                      {checkedItems[item.id] ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <div className="w-5 h-5 border-2 border-gray-300 rounded-full" />
-                      )}
-                    </button>
-                    <div className="flex-1">
-                      <p className={`font-medium ${checkedItems[item.id] ? 'text-gray-500 line-through' : 'text-gray-800'}`}>
-                        {item.text}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1 italic">
-                        💡 {item.tip}
-                      </p>
+            const colorMap = {
+                'bg-blue-500': '#3b82f6',
+                'bg-green-500': '#10b981',
+                'bg-purple-500': '#8b5cf6'
+            };
+
+            return (
+                <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '1.5rem' }}>
+                    <div style={{ 
+                        background: 'white', 
+                        borderRadius: '8px', 
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                        padding: '1.5rem', 
+                        marginBottom: '1.5rem' 
+                    }}>
+                        <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 0.5rem 0', color: '#1f2937' }}>
+                            Communication Toolkit
+                        </h1>
+                        <p style={{ color: '#6b7280', margin: 0 }}>
+                            Tools for managing emotional reactions and building resilient communication
+                        </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-6">
-        <div className="flex items-start space-x-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-amber-800">Remember</h4>
-            <p className="text-amber-700 text-sm">
-              These skills take practice. Start with one technique at a time, and be patient with yourself as you build new habits. 
-              Progress isn't perfection - it's about responding a little bit better each time.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+                    <div style={{ 
+                        display: 'grid', 
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+                        gap: '1rem', 
+                        marginBottom: '1.5rem' 
+                    }}>
+                        {Object.entries(sections).map(([key, section]) => (
+                            <button
+                                key={key}
+                                onClick={() => setActiveSection(key)}
+                                style={{
+                                    padding: '1rem',
+                                    borderRadius: '8px',
+                                    border: '2px solid',
+                                    borderColor: activeSection === key ? 'transparent' : '#e5e7eb',
+                                    background: activeSection === key ? colorMap[section.color] : 'white',
+                                    color: activeSection === key ? 'white' : '#374151',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    fontSize: '1rem',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {section.title}
+                            </button>
+                        ))}
+                    </div>
 
-export default CommunicationToolkit;
+                    <div style={{ 
+                        background: 'white', 
+                        borderRadius: '8px', 
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)', 
+                        padding: '1.5rem' 
+                    }}>
+                        <h2 style={{ 
+                            fontSize: '1.5rem', 
+                            fontWeight: 'bold', 
+                            marginBottom: '1.5rem', 
+                            color: '#1f2937',
+                            borderBottom: '2px solid #e5e7eb',
+                            paddingBottom: '0.5rem'
+                        }}>
+                            {sections[activeSection].title}
+                        </h2>
+
+                        {sections[activeSection].content.map((subsection, idx) => (
+                            <div key={idx} style={{ marginBottom: '2rem' }}>
+                                <h3 style={{ 
+                                    fontSize: '1.2rem', 
+                                    fontWeight: '600', 
+                                    color: '#374151', 
+                                    marginBottom: '1rem' 
+                                }}>
+                                    {subsection.subtitle}
+                                </h3>
+                                <div>
+                                    {subsection.items.map((item) => (
+                                        <div 
+                                            key={item.id}
+                                            style={{ 
+                                                display: 'flex', 
+                                                alignItems: 'flex-start', 
+                                                gap: '0.75rem', 
+                                                padding: '0.75rem', 
+                                                borderRadius: '6px', 
+                                                marginBottom: '0.75rem',
+                                                background: '#f9fafb',
+                                                transition: 'background 0.2s'
+                                            }}
+                                        >
+                                            <button
+                                                onClick={() => toggleCheck(item.id)}
+                                                style={{
+                                                    marginTop: '0.25rem',
+                                                    flexShrink: 0,
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    cursor: 'pointer',
+                                                    padding: 0
+                                                }}
+                                            >
+                                                {checkedItems[item.id] ? (
+                                                    <div style={{ 
+                                                        width: '20px', 
+                                                        height: '20px', 
+                                                        background: '#10b981', 
+                                                        borderRadius: '50%',
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        justifyContent: 'center',
+                                                        color: 'white',
+                                                        fontSize: '12px'
+                                                    }}>✓</div>
+                                                ) : (
+                                                    <div style={{ 
+                                                        width: '20px', 
+                                                        height: '20px', 
+                                                        border: '2px solid #d1d5db', 
+                                                        borderRadius: '50%' 
+                                                    }} />
+                                                )}
+                                            </button>
+                                            <div style={{ flex: 1 }}>
+                                                <p style={{ 
+                                                    fontWeight: '500', 
+                                                    margin: '0 0 0.25rem 0',
+                                                    color: checkedItems[item.id] ? '#6b7280' : '#1f2937',
+                                                    textDecoration: checkedItems[item.id] ? 'line-through' : 'none'
+                                                }}>
+                                                    {item.text}
+                                                </p>
+                                                <p style={{ 
+                                                    fontSize: '0.875rem', 
+                                                    color: '#6b7280', 
+                                                    margin: 0,
+                                                    fontStyle: 'italic'
+                                                }}>
+                                                    💡 {item.tip}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div style={{ 
+                        background: '#fef3cd', 
+                        border: '1px solid #f59e0b', 
+                        borderRadius: '8px', 
+                        padding: '1rem', 
+                        marginTop: '1.5rem' 
+                    }}>
+                        <h4 style={{ fontWeight: '600', color: '#92400e', margin: '0 0 0.5rem 0' }}>Remember</h4>
+                        <p style={{ color: '#92400e', fontSize: '0.875rem', margin: 0 }}>
+                            These skills take practice. Start with one technique at a time, and be patient with yourself as you build new habits. 
+                            Progress isn't perfection - it's about responding a little bit better each time.
+                        </p>
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<CommunicationToolkit />, document.getElementById('root'));
+    </script>
+</body>
+</html>
