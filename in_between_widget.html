@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>In‑Between Time Tool</title>
+  <style>
+    :root { --ink:#111827; --muted:#6b7280; --bg:#f8f9fa; --card:#ffffff; --brand:#4f46e5; --ok:#059669; --warn:#a16207; --line:#e5e7eb; }
+    body { margin:0; font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+    header { padding:16px 20px; background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+    header h1 { margin:0; font-size:22px; font-weight:700; }
+    main { max-width: 960px; margin: 0 auto; padding: 12px; }
+    .note { font-size:12px; color:#fff; opacity:.85 }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.05); padding:14px; margin:12px 0; }
+    .back { display:inline-block; margin:10px 0 0 10px; color:#fff; text-decoration:none; font-weight:600 }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="back" href="index.html">← Back</a>
+    <h1>In‑Between Time Tool</h1>
+    <div class="note">Lightweight Web Component • works offline • mobile‑friendly</div>
+  </header>
+  <main>
+    <in-between-widget></in-between-widget>
+    <section class="card" style="font-size:14px;color:var(--muted)">
+      <strong>How it works:</strong> Set your leave time → pick a box (Maintenance / Growth / Rest) → 60‑second decision → lock a task → do it until the leave time. Use the 90‑second emotion timer and the Curiosity Inbox to resist screen spirals.
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const HTML = /* html */`
+      <style>
+        :host{display:block}
+        .wrap{display:grid;gap:12px}
+        .section{border:1px solid var(--line);border-radius:14px;background:#fff;padding:12px}
+        .row{display:grid;gap:8px}
+        @media(min-width:700px){ .row{grid-template-columns: repeat(3,1fr);} }
+        label{font-size:12px;color:var(--muted)}
+        input[type=time],input[type=text],select,button,textarea{font:inherit}
+        input[type=time],input[type=text],select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+        textarea{min-height:70px;resize:vertical}
+        .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;color:#374151;background:#fafafa}
+        .btn{border:0;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+        .brand{background:var(--brand);color:#fff}
+        .ghost{background:#eef2ff;color:#3730a3}
+        .ok{background:var(--ok);color:#fff}
+        .muted{background:#f3f4f6;color:#111827}
+        .list{display:grid;gap:6px;margin-top:8px}
+        .item{display:flex;justify-content:space-between;align-items:center;background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+        .tags{font-size:12px;color:var(--muted)}
+        progress{width:100%;height:10px}
+        details{margin-top:8px}
+      </style>
+      <div class="wrap">
+        <!-- Time Window -->
+        <section class="section" id="time">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <div><strong>Time Window</strong><div class="tags" id="minsLeft">—</div></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn ghost" id="plus30">+30 min</button>
+              <button class="btn brand" id="plus60">+1 hour</button>
+            </div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Now</label>
+              <input id="now" disabled>
+            </div>
+            <div>
+              <label>Leave at</label>
+              <input id="leave" type="time">
+            </div>
+            <div>
+              <label>Status</label>
+              <div class="pill" id="status">Ready</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Boxes -->
+        <section class="section">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <strong>Pick a Box</strong>
+            <div class="tags" id="eligible">—</div>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn muted" id="boxMaint">Maintenance</button>
+            <button class="btn muted" id="boxGrowth">Growth</button>
+            <button class="btn muted" id="boxRest">Rest</button>
+          </div>
+          <div class="list" id="taskList"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn ok" id="quick">Quick pick</button>
+            <button class="btn ghost" id="editToggle">Edit tasks</button>
+          </div>
+          <details id="editor">
+            <summary style="cursor:pointer;margin-top:6px"><strong>Edit your task lists</strong></summary>
+            <div class="row" style="margin-top:6px">
+              <div>
+                <label>Maintenance (comma‑separated)</label>
+                <textarea id="editMaint"></textarea>
+              </div>
+              <div>
+                <label>Growth</label>
+                <textarea id="editGrowth"></textarea>
+              </div>
+              <div>
+                <label>Rest</label>
+                <textarea id="editRest"></textarea>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <button class="btn brand" id="saveTasks">Save tasks</button>
+              <button class="btn muted" id="resetTasks">Reset defaults</button>
+            </div>
+          </details>
+        </section>
+
+        <!-- Decision Timer -->
+        <section class="section">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <strong>60‑Second Decision</strong>
+            <span class="pill" id="tRemain">60s</span>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Task</label>
+              <select id="taskSelect"></select>
+            </div>
+            <div style="display:flex;gap:8px;align-items:end">
+              <button class="btn brand" id="start60">Start 60s</button>
+              <button class="btn muted" id="reset60">Reset</button>
+              <button class="btn ok" id="lock">Lock Choice</button>
+            </div>
+          </div>
+          <progress id="bar60" max="60" value="0"></progress>
+          <div class="tags">Point and go. You’re training speed, not perfection.</div>
+        </section>
+
+        <!-- Session Runner -->
+        <section class="section" id="session" style="display:none">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+            <div>
+              <strong>In‑Session</strong>
+              <div class="tags" id="endsAt">—</div>
+            </div>
+            <button class="btn muted" id="stop">Stop</button>
+          </div>
+          <div class="item" style="margin-top:8px">
+            <div>
+              <div class="tags">Doing</div>
+              <div id="doing" style="font-weight:600"></div>
+            </div>
+          </div>
+          <progress id="barSession" max="100" value="0" style="margin-top:8px"></progress>
+          <details style="margin-top:6px">
+            <summary class="tags">Micro‑close checklist</summary>
+            <ul style="margin:6px 0 0 18px;font-size:14px">
+              <li>Save/mark done</li>
+              <li>Tidy surface (1 minute)</li>
+              <li>Pack essentials (keys, wallet, phone)</li>
+              <li>Walk out</li>
+            </ul>
+          </details>
+        </section>
+
+        <!-- Emotion Timer -->
+        <section class="section">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>Ride the Wave (90s)</strong><span class="pill" id="t90">90s</span></div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Name the emotion</label>
+              <input id="emo" placeholder="e.g., fear, shame, anxiety">
+            </div>
+            <div style="display:flex;gap:8px;align-items:end">
+              <button class="btn brand" id="start90">Start 90s</button>
+              <button class="btn muted" id="reset90">Reset</button>
+            </div>
+          </div>
+          <progress id="bar90" max="90" value="0"></progress>
+        </section>
+
+        <!-- Curiosity Inbox -->
+        <section class="section">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><strong>Curiosity Inbox</strong><span class="tags" id="qCount">0 saved</span></div>
+          <div class="row" style="margin-top:8px">
+            <div>
+              <label>Capture a question (don’t answer now)</label>
+              <input id="qInput" placeholder="Type a question and press Add">
+            </div>
+            <div style="display:flex;gap:8px;align-items:end">
+              <button class="btn brand" id="qAdd">Add</button>
+              <button class="btn muted" id="qClear">Clear all</button>
+            </div>
+          </div>
+          <div class="list" id="qList"></div>
+        </section>
+      </div>
+    `;
+
+    const DEFAULTS = {
+      tasks: {
+        Maintenance: ["Dishes reset","Tidy desk","Inbox to 10","Plan tomorrow"],
+        Growth: ["Read 10 pages","Code kata 20m","Skim one paper","Write 5 bullets"],
+        Rest: ["Walk outside","Stretch 10m","Music + breathe","Power nap 15m"],
+      },
+      selectedBox: 'Maintenance'
+    };
+
+    const K = {
+      tasks: 'ib_tasks_v1',
+      box: 'ib_box_v1',
+      curiosity: 'ib_q_v1',
+      leave: 'ib_leave_v1'
+    };
+
+    class InBetweenWidget extends HTMLElement{
+      constructor(){ super(); this.attachShadow({mode:'open'}); this.shadowRoot.innerHTML = HTML; }
+      connectedCallback(){
+        const $ = (sel)=> this.shadowRoot.querySelector(sel);
+        const $$ = (sel)=> this.shadowRoot.querySelectorAll(sel);
+        // Elements
+        const now = $('#now'), leave = $('#leave'), minsLeft = $('#minsLeft'), status = $('#status');
+        const plus30 = $('#plus30'), plus60 = $('#plus60');
+        const eligible = $('#eligible');
+        const boxMaint = $('#boxMaint'), boxGrowth = $('#boxGrowth'), boxRest = $('#boxRest');
+        const taskList = $('#taskList'), taskSelect = $('#taskSelect');
+        const quick = $('#quick'), editToggle = $('#editToggle');
+        const editor = $('#editor');
+        const editMaint = $('#editMaint'), editGrowth = $('#editGrowth'), editRest = $('#editRest');
+        const saveTasks = $('#saveTasks'), resetTasks = $('#resetTasks');
+        const start60 = $('#start60'), reset60 = $('#reset60'), lock = $('#lock'), tRemain = $('#tRemain'), bar60 = $('#bar60');
+        const session = $('#session'), stop = $('#stop'), doing = $('#doing'), endsAt = $('#endsAt'), barSession = $('#barSession');
+        const emo = $('#emo'), start90 = $('#start90'), reset90 = $('#reset90'), t90 = $('#t90'), bar90 = $('#bar90');
+        const qInput = $('#qInput'), qAdd = $('#qAdd'), qClear = $('#qClear'), qList = $('#qList'), qCount = $('#qCount');
+
+        // State
+        let tasks = load(K.tasks, DEFAULTS.tasks);
+        let selectedBox = load(K.box, DEFAULTS.selectedBox);
+        let curiosity = load(K.curiosity, []);
+        let leaveStr = load(K.leave, suggestLeave());
+        let tickId, tick90, sessId; let secs = 60, secs90 = 90; let locked = null;
+
+        // Init UI
+        function pad(n){ return String(n).padStart(2,'0'); }
+        function timeStr(d){ return pad(d.getHours())+":"+pad(d.getMinutes()); }
+        function parseTime(str){ const [h,m] = (str||'').split(':').map(Number); const now = new Date(); const t = new Date(now.getFullYear(),now.getMonth(),now.getDate(),h||0,m||0,0,0); if(t<now) t.setDate(t.getDate()+1); return t; }
+        function minutesTo(d){ const n=new Date(); return Math.max(0, Math.round((d-n)/60000)); }
+        function suggestLeave(){ const d = new Date(Date.now()+60*60*1000); return timeStr(d); }
+        function save(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+        function load(k,f){ try{ const r = localStorage.getItem(k); return r? JSON.parse(r): f; }catch(e){ return f; } }
+        function renderBoxes(){
+          [boxMaint, boxGrowth, boxRest].forEach(b=>{ b.classList.remove('brand'); b.classList.add('muted'); });
+          const map = {Maintenance:boxMaint, Growth:boxGrowth, Rest:boxRest};
+          (map[selectedBox]||boxMaint).classList.remove('muted'); (map[selectedBox]||boxMaint).classList.add('brand');
+          // Eligible hint
+          const mins = minutesTo(parseTime(leave.value));
+          eligible.textContent = mins < 60 ? 'Maintenance • Rest recommended (<60m)' : 'All boxes available (≥60m)';
+          // Populate task list & select
+          taskList.innerHTML = '';
+          (tasks[selectedBox]||[]).forEach((t,i)=>{
+            const row = document.createElement('div'); row.className='item';
+            row.innerHTML = `<div style="font-size:14px">${t}</div><button class="btn muted" data-i="${i}">remove</button>`;
+            row.querySelector('button').onclick = () => { tasks[selectedBox].splice(i,1); save(K.tasks,tasks); renderBoxes(); renderSelect(); };
+            taskList.appendChild(row);
+          });
+          if((tasks[selectedBox]||[]).length===0){ const e=document.createElement('div'); e.className='tags'; e.textContent='No tasks yet.'; taskList.appendChild(e); }
+          renderSelect();
+        }
+        function renderSelect(){
+          taskSelect.innerHTML = '';
+          const opt0 = document.createElement('option'); opt0.textContent = selectedBox?`Choose from ${selectedBox}…`:'Pick a box first'; opt0.disabled = true; opt0.selected = true; taskSelect.appendChild(opt0);
+          (tasks[selectedBox]||[]).forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; taskSelect.appendChild(o); });
+        }
+        function renderEditor(){
+          editMaint.value = (tasks.Maintenance||[]).join(', ');
+          editGrowth.value = (tasks.Growth||[]).join(', ');
+          editRest.value = (tasks.Rest||[]).join(', ');
+        }
+        function renderTime(){
+          now.value = timeStr(new Date());
+          const dt = parseTime(leave.value);
+          minsLeft.textContent = minutesTo(dt) + ' min left';
+          endsAt.textContent = 'Ends at ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+          status.textContent = locked? 'Locked on task' : 'Ready';
+          // session bar width
+          if(locked){
+            const total = Math.max(1, (dt - new Date(locked.start))/60000);
+            const left = minutesTo(dt);
+            const done = Math.max(0, Math.min(100, ((total-left)/total)*100));
+            barSession.value = done;
+          }
+        }
+        function tick(){ secs = Math.max(0, secs-1); tRemain.textContent = secs+'s'; bar60.value = 60-secs; if(secs===0){ clearInterval(tickId); tickId=null; }}
+        function tickWave(){ secs90 = Math.max(0, secs90-1); t90.textContent = secs90+'s'; bar90.value = 90-secs90; if(secs90===0){ clearInterval(tick90); tick90=null; }}
+
+        // Set initial values
+        leave.value = leaveStr; renderTime();
+        renderBoxes(); renderEditor();
+        setInterval(renderTime, 1000);
+
+        // Time controls
+        plus30.onclick = ()=> { const d = parseTime(leave.value); d.setMinutes(d.getMinutes()+30); leave.value = timeStr(d); leaveStr = leave.value; save(K.leave, leaveStr); renderTime(); };
+        plus60.onclick = ()=> { const d = parseTime(leave.value); d.setMinutes(d.getMinutes()+60); leave.value = timeStr(d); leaveStr = leave.value; save(K.leave, leaveStr); renderTime(); };
+        leave.onchange = ()=> { leaveStr = leave.value || suggestLeave(); save(K.leave, leaveStr); renderTime(); };
+
+        // Box selection
+        boxMaint.onclick = ()=> { selectedBox='Maintenance'; save(K.box,selectedBox); renderBoxes(); };
+        boxGrowth.onclick = ()=> { selectedBox='Growth'; save(K.box,selectedBox); renderBoxes(); };
+        boxRest.onclick = ()=> { selectedBox='Rest'; save(K.box,selectedBox); renderBoxes(); };
+
+        // Quick pick
+        quick.onclick = ()=> {
+          const pool = (tasks[selectedBox]||[]);
+          if(pool.length===0) return alert('No tasks in this box yet. Add some below.');
+          const t = pool[Math.floor(Math.random()*pool.length)];
+          taskSelect.value = t; // prefill
+        };
+
+        // Editor
+        editToggle.onclick = ()=> { editor.open = !editor.open; };
+        saveTasks.onclick = ()=> {
+          tasks = {
+            Maintenance: editMaint.value.split(',').map(s=>s.trim()).filter(Boolean),
+            Growth: editGrowth.value.split(',').map(s=>s.trim()).filter(Boolean),
+            Rest: editRest.value.split(',').map(s=>s.trim()).filter(Boolean),
+          };
+          save(K.tasks,tasks); renderBoxes(); alert('Saved');
+        };
+        resetTasks.onclick = ()=> { tasks = JSON.parse(JSON.stringify(DEFAULTS.tasks)); save(K.tasks,tasks); renderBoxes(); renderEditor(); };
+
+        // 60s decision
+        start60.onclick = ()=> { if(!taskSelect.value) return alert('Pick a task first.'); secs=60; bar60.value=0; tRemain.textContent='60s'; if(tickId) clearInterval(tickId); tickId=setInterval(tick,1000); };
+        reset60.onclick = ()=> { if(tickId) clearInterval(tickId); secs=60; bar60.value=0; tRemain.textContent='60s'; };
+        lock.onclick = ()=> {
+          if(!taskSelect.value) return alert('Pick a task first.');
+          locked = { box: selectedBox, task: taskSelect.value, start: new Date().toISOString() };
+          doing.textContent = `${'`'}${'${'}locked.task{'}'}${'`'} (${ '${'}locked.box{'}'} )`;// template literal escape in string
+          session.style.display='block';
+          renderTime();
+        };
+        stop.onclick = ()=> { locked=null; session.style.display='none'; renderTime(); };
+
+        // 90s emotion
+        start90.onclick = ()=> { secs90=90; bar90.value=0; t90.textContent='90s'; if(tick90) clearInterval(tick90); tick90=setInterval(tickWave,1000); };
+        reset90.onclick = ()=> { if(tick90) clearInterval(tick90); secs90=90; bar90.value=0; t90.textContent='90s'; };
+
+        // Curiosity inbox
+        function renderQ(){ qList.innerHTML=''; qCount.textContent = curiosity.length+ ' saved';
+          curiosity.forEach((q, i)=>{
+            const row = document.createElement('div'); row.className='item';
+            row.innerHTML = `<div><div style="font-size:14px">${q.text}</div><div class="tags">${new Date(q.ts).toLocaleString()}</div></div><div style="display:flex;gap:6px"><button class="btn ghost" data-i="${i}">Mark curiosity</button><button class="btn muted" data-rm="${i}">Delete</button></div>`;
+            row.querySelector('[data-i]').onclick = ()=> { curiosity[i].status = curiosity[i].status==='curiosity'? 'inbox':'curiosity'; save(K.curiosity,curiosity); renderQ(); };
+            row.querySelector('[data-rm]').onclick = ()=> { curiosity.splice(i,1); save(K.curiosity,curiosity); renderQ(); };
+            qList.appendChild(row);
+          });
+          if(curiosity.length===0){ const e=document.createElement('div'); e.className='tags'; e.textContent='No saved questions.'; qList.appendChild(e); }
+        }
+        qAdd.onclick = ()=> { const t = (qInput.value||'').trim(); if(!t) return; curiosity.unshift({text:t, ts:Date.now(), status:'inbox'}); qInput.value=''; save(K.curiosity,curiosity); renderQ(); };
+        qClear.onclick = ()=> { if(confirm('Delete all saved questions?')){ curiosity=[]; save(K.curiosity,curiosity); renderQ(); } };
+        renderQ();
+      }
+    }
+
+    customElements.define('in-between-widget', InBetweenWidget);
+  })();
+  </script>
+</body>
+</html>
