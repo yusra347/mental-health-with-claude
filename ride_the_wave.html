@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ride the Wave (90s)</title>
+  <style>
+    :root{--bg:#f8f9fa;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--card:#fff;--brand:#a21caf}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif}
+    header{padding:16px 20px;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:#fff}
+    header h1{margin:0;font-size:22px;font-weight:800}
+    header a{color:#fff;text-decoration:none;margin-right:8px}
+    main{max-width:960px;margin:0 auto;padding:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:14px;margin:12px 0}
+    .btn{border:0;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+    .brand{background:#a21caf;color:#fff}
+    .muted{background:#f3f4f6;color:#111827}
+    .row{display:grid;gap:8px}
+    @media(min-width:700px){ .row{grid-template-columns:1fr auto auto} }
+    input{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    progress{width:100%;height:12px}
+    .tags{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html">← Back</a>
+    <h1>Ride the Wave (90s)</h1>
+    <div class="tags" style="opacity:.9">Stay in your body for 90 seconds; let the wave crest and pass.</div>
+  </header>
+
+  <main>
+    <ride-the-wave></ride-the-wave>
+    <section class="card" style="font-size:14px;color:var(--muted)">
+      <strong>Tip:</strong> Say out loud: “This is <em>anxiety/shame/fear</em>.” Describe the sensations (tight chest, heat, buzzing). Don’t add a story.
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const HTML = /* html */`
+      <style>:host{display:block}</style>
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <strong>90‑Second Emotion Timer</strong>
+          <span class="tags" id="left">90s</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <input id="label" placeholder="Name the emotion (e.g., fear, shame, anxiety)" />
+          <button class="btn brand" id="start">Start 90s</button>
+          <button class="btn muted" id="reset">Reset</button>
+        </div>
+        <progress id="bar" max="90" value="0" style="margin-top:8px"></progress>
+        <div class="tags" style="margin-top:6px">Notice breath, posture, and muscle tension. Let the sensations change on their own.</div>
+      </section>
+    `;
+
+    class RideTheWave extends HTMLElement{
+      constructor(){ super(); this.attachShadow({mode:'open'}); this.shadowRoot.innerHTML = HTML; }
+      connectedCallback(){
+        const $ = (s)=> this.shadowRoot.querySelector(s);
+        const start = $('#start'), reset = $('#reset'), bar = $('#bar'), left = $('#left');
+        let secs = 90, id;
+        function tick(){ secs = Math.max(0, secs-1); bar.value = 90-secs; left.textContent = secs+'s'; if(secs===0){ clearInterval(id); id=null; } }
+        start.onclick = ()=> { if(id) clearInterval(id); secs=90; bar.value=0; left.textContent='90s'; id=setInterval(tick,1000); };
+        reset.onclick = ()=> { if(id) clearInterval(id); secs=90; bar.value=0; left.textContent='90s'; };
+      }
+    }
+
+    customElements.define('ride-the-wave', RideTheWave);
+  })();
+  </script>
+</body>
+</html>

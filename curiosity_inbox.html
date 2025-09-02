@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Curiosity Inbox</title>
+  <style>
+    :root{--bg:#f8f9fa;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--card:#fff;--brand:#4f46e5}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif}
+    header{padding:16px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+    header h1{margin:0;font-size:22px;font-weight:800}
+    header a{color:#fff;text-decoration:none;margin-right:8px}
+    main{max-width:960px;margin:0 auto;padding:12px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.05);padding:14px;margin:12px 0}
+    .btn{border:0;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+    .brand{background:var(--brand);color:#fff}
+    .muted{background:#f3f4f6;color:#111827}
+    .ghost{background:#eef2ff;color:#3730a3}
+    .row{display:grid;gap:8px}
+    @media(min-width:700px){ .row{grid-template-columns:1fr auto auto} }
+    input{font:inherit;width:100%;padding:10px;border:1px solid var(--line);border-radius:10px}
+    .list{display:grid;gap:8px}
+    .item{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+    .tags{font-size:12px;color:var(--muted)}
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html">← Back</a>
+    <h1>Curiosity Inbox</h1>
+    <div class="tags" style="opacity:.9">Capture questions now. Research later.</div>
+  </header>
+
+  <main>
+    <curiosity-inbox></curiosity-inbox>
+    <section class="card" style="font-size:14px;color:var(--muted)">
+      <strong>How to use:</strong> When a question pops up, type it and press <em>Add</em>. Review in a batch later. Only research the ones you mark as “curiosity.”
+    </section>
+  </main>
+
+  <script>
+  (function(){
+    const HTML = /* html */`
+      <style>
+        :host{display:block}
+      </style>
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+          <strong>Curiosity Inbox</strong>
+          <span class="tags" id="count">0 saved</span>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <input id="q" placeholder="Type a question and press Add" />
+          <button class="btn brand" id="add">Add</button>
+          <button class="btn muted" id="clear">Clear all</button>
+        </div>
+      </section>
+      <section class="card">
+        <div class="list" id="list"></div>
+      </section>
+    `;
+
+    const K = { items: 'ci_items_v1' };
+
+    class CuriosityInbox extends HTMLElement{
+      constructor(){ super(); this.attachShadow({mode:'open'}); this.shadowRoot.innerHTML = HTML; }
+      connectedCallback(){
+        const $ = (s)=> this.shadowRoot.querySelector(s);
+        const listEl = $('#list');
+        const q = $('#q');
+        const add = $('#add');
+        const clear = $('#clear');
+        const count = $('#count');
+        let items = load(K.items, []);
+
+        function save(){ try{ localStorage.setItem(K.items, JSON.stringify(items)); }catch(e){} }
+        function load(k,f){ try{ const r = localStorage.getItem(k); return r? JSON.parse(r): f; }catch(e){ return f; } }
+
+        function render(){
+          listEl.innerHTML='';
+          count.textContent = `${items.length} saved`;
+          if(items.length===0){
+            const e = document.createElement('div'); e.className='tags'; e.textContent='No saved questions.'; listEl.appendChild(e); return;
+          }
+          items.forEach((it, i)=>{
+            const row = document.createElement('div'); row.className='item';
+            row.innerHTML = `
+              <div>
+                <div style="font-size:14px">${escapeHtml(it.text)}</div>
+                <div class="tags">${new Date(it.ts).toLocaleString()} • ${it.status||'inbox'}</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn ghost" data-mark>Mark curiosity</button>
+                <button class="btn muted" data-del>Delete</button>
+              </div>`;
+            row.querySelector('[data-mark]').onclick = ()=> { items[i].status = (it.status==='curiosity'?'inbox':'curiosity'); save(); render(); };
+            row.querySelector('[data-del]').onclick = ()=> { items.splice(i,1); save(); render(); };
+            listEl.appendChild(row);
+          });
+        }
+
+        function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c])); }
+
+        add.onclick = ()=> { const t=(q.value||'').trim(); if(!t) return; items.unshift({text:t, ts:Date.now(), status:'inbox'}); q.value=''; save(); render(); };
+        q.addEventListener('keydown', (e)=> { if(e.key==='Enter'){ e.preventDefault(); add.click(); }});
+        clear.onclick = ()=> { if(confirm('Delete all saved questions?')){ items=[]; save(); render(); } };
+
+        render();
+      }
+    }
+
+    customElements.define('curiosity-inbox', CuriosityInbox);
+  })();
+  </script>
+</body>
+</html>

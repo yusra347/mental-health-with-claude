@@ -1,404 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mental Health Toolkit</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#667eea" />
+  <title>My Interactive Blog</title>
+  <style>
+    :root{
+      --bg:#f8f9fa; --ink:#333; --muted:#666; --brand:#667eea; --brand2:#764ba2; --card:#fff; --line:#e5e7eb; --shadow:0 4px 20px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,system-ui,sans-serif; line-height:1.6; color:var(--ink); background:var(--bg)}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f8f9fa;
-        }
+    .container{max-width:1000px;margin:0 auto;padding:0 20px}
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+    header{background:linear-gradient(135deg, var(--brand) 0%, var(--brand2) 100%); color:#fff; padding:2rem 0; text-align:center; box-shadow:var(--shadow)}
+    h1{font-size:2.25rem; margin:0 0 .5rem 0; font-weight:800; letter-spacing:.2px}
+    .tagline{font-size:1.05rem; opacity:.95}
 
-        header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem 0;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
+    nav{background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.06); position:sticky; top:0; z-index:10}
+    .nav-container{display:flex; justify-content:space-between; align-items:center; padding:12px 0}
+    .nav-links{display:flex; gap:1.25rem; list-style:none; padding:0; margin:0}
+    .nav-links a{color:inherit; text-decoration:none; font-weight:600}
+    .nav-links a:focus,.nav-links a:hover{color:var(--brand); outline:none}
 
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-            font-weight: 700;
-        }
+    main{padding:2rem 0}
+    .posts-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:1.5rem}
 
-        .tagline {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
+    .post-card{display:block; background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); overflow:hidden; text-decoration:none; color:inherit; transition:transform .2s ease}
+    .post-card:focus{outline:2px solid var(--brand); outline-offset:2px}
+    .post-card:hover{transform:translateY(-3px)}
 
-        nav {
-            background: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
+    .artifact-preview{height:180px; background:linear-gradient(45deg,#f0f2f5,#e9ecef); display:flex; align-items:center; justify-content:center; color:#666; font-style:italic}
+    .post-header{padding:1.25rem; border-left:4px solid var(--brand)}
+    .post-title{font-size:1.25rem; font-weight:700; margin:0 0 .5rem 0; color:#2c3e50}
+    .post-meta{color:var(--muted); font-size:.9rem; margin-bottom:.6rem}
+    .post-excerpt{color:#555; margin:0}
+    .post-type{display:inline-block; background:var(--brand); color:#fff; padding:.25rem .65rem; border-radius:999px; font-size:.8rem; margin-top:.75rem}
 
-        .nav-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .footer{background:#2c3e50; color:#fff; text-align:center; padding:1.5rem 0; margin-top:2rem}
 
-        .nav-links {
-            display: flex;
-            list-style: none;
-            gap: 2rem;
-        }
+    @media (max-width: 768px){ h1{font-size:1.9rem} .posts-grid{grid-template-columns:1fr} }
 
-        .nav-links a {
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .nav-links a:hover {
-            color: #667eea;
-        }
-
-        main {
-            padding: 3rem 0;
-        }
-
-        .posts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .post-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-        }
-
-        .post-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-        }
-
-        .post-header {
-            padding: 1.5rem;
-            border-left: 4px solid #667eea;
-        }
-
-        .post-title {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: #2c3e50;
-        }
-
-        .post-meta {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-        }
-
-        .post-excerpt {
-            color: #555;
-            line-height: 1.6;
-        }
-
-        .post-type {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin-top: 1rem;
-        }
-
-        .artifact-preview {
-            height: 200px;
-            background: linear-gradient(45deg, #f0f2f5, #e9ecef);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-style: italic;
-        }
-
-        .footer {
-            background: #2c3e50;
-            color: white;
-            text-align: center;
-            padding: 2rem 0;
-            margin-top: 3rem;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-        }
-
-        .modal-content {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            width: 90%;
-            max-width: 800px;
-            max-height: 90%;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .modal-header {
-            background: #667eea;
-            color: white;
-            padding: 1rem 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-body {
-            padding: 2rem;
-            overflow-y: auto;
-            max-height: calc(90vh - 120px);
-        }
-
-        .add-post-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            background: #667eea;
-            color: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-            transition: transform 0.3s;
-        }
-
-        .add-post-btn:hover {
-            transform: scale(1.1);
-        }
-
-        @media (max-width: 768px) {
-            .posts-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .nav-links {
-                gap: 1rem;
-            }
-        }
-    </style>
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){ .post-card{transition:none} .post-card:hover{transform:none} }
+  </style>
 </head>
 <body>
-    <header>
-        <div class="container">
-            <h1>Mental Health Toolkits</h1>
-            <p class="tagline">Sharing interactive tools and insights. Co-created with AI</p>
-        </div>
-    </header>
-
-    <nav>
-        <div class="container nav-container">
-            <div class="logo">
-                <strong>Blog</strong>
-            </div>
-            <ul class="nav-links">
-                <li><a href="#home">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <main>
-        <div class="container">
-            <div class="posts-grid" id="postsGrid">
-                <article class="post-card" onclick="window.location.href='communication-toolkit.html'">
-                    <div class="artifact-preview">
-                        <span>🛠️ Interactive Communication Toolkit</span>
-                    </div>
-                    <div class="post-header">
-                        <h2 class="post-title">Emotional Communication Toolkit</h2>
-                        <div class="post-meta">Published on Sep 1, 2025</div>
-                        <p class="post-excerpt">
-                            An interactive guide for managing emotional reactions in difficult conversations. 
-                            Includes practical strategies for pausing, reframing feedback, and working with resistance.
-                        </p>
-                        <span class="post-type">Interactive Tool</span>
-                    </div>
-                </article>
-                <article class="post-card" onclick="window.location.href='in_between_widget.html'">
-                  <div class="artifact-preview">
-                    <span>⏳ In-Between Time Tool</span>
-                  </div>
-                  <div class="post-header">
-                    <h2 class="post-title">The 3-Box Rule for Unstructured Time</h2>
-                    <div class="post-meta">Published on Sep 1, 2025</div>
-                    <p class="post-excerpt">
-                      Decide fast, not perfectly: pick a box, lock a task, and go.
-                    </p>
-                    <span class="post-type">Interactive Tool</span>
-                  </div>
-                </article>
-            </div>
-        </div>
-
-        
-
-        
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <p>&copy; 2025 Mental Health Toolkit. Built with ❤️ and hosted on GitHub Pages.</p>
-        </div>
-    </footer>
-
-    <button class="add-post-btn" onclick="showAddPost()" title="Add New Post">+</button>
-
-    <!-- Modal for viewing posts -->
-    <div class="modal" id="postModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="modalTitle">Post Title</h3>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Post content will be loaded here -->
-            </div>
-        </div>
+  <header>
+    <div class="container">
+      <h1>My Interactive Blog</h1>
+      <p class="tagline">Sharing interactive tools and insights. Co-created with AI.</p>
     </div>
+  </header>
 
-    <script>
-        // Blog posts data (you can move this to a separate JSON file later)
-        const posts = {
-            'communication-toolkit': {
-                title: 'Emotional Communication Toolkit',
-                date: 'Sep 1, 2025',
-                type: 'Interactive Tool',
-                content: `
-                    <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; margin-bottom: 2rem;">
-                        <h3>About This Tool</h3>
-                        <p>This interactive toolkit helps you manage emotional reactions in difficult conversations. It includes three main sections:</p>
-                        <ul style="margin: 1rem 0; padding-left: 2rem;">
-                            <li><strong>The Pause Toolkit:</strong> In-the-moment strategies to prevent reactive responses</li>
-                            <li><strong>Feedback Reframing:</strong> Mental shifts to receive criticism more constructively</li>
-                            <li><strong>Working with Resistance:</strong> Understanding and responding to your natural resistance</li>
-                        </ul>
-                    </div>
-                    
-                    <div style="border: 2px dashed #ccc; padding: 2rem; text-align: center; background: #fff;">
-                        <p><strong>🔧 Interactive Artifact Would Load Here</strong></p>
-                        <p style="color: #666; margin-top: 1rem;">
-                            In your actual blog, you'll embed the React component or HTML artifact here.
-                            This could be an iframe, embedded component, or inline interactive content.
-                        </p>
-                    </div>
-                    
-                    <div style="margin-top: 2rem; padding: 1.5rem; background: #e8f4f8; border-left: 4px solid #17a2b8;">
-                        <h4>💡 How to Use This Tool</h4>
-                        <p>Start with the "Pause Toolkit" section when you're in a heated moment. Once you've mastered those techniques, move on to reframing and resistance strategies. Check off items as you practice them to track your progress.</p>
-                    </div>
-                `
-            }
-        };
+  <nav aria-label="Primary" role="navigation">
+    <div class="container nav-container">
+      <div class="logo"><strong>Blog</strong></div>
+      <ul class="nav-links">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
 
-        function openPost(postId) {
-            const post = posts[postId];
-            if (post) {
-                document.getElementById('modalTitle').textContent = post.title;
-                document.getElementById('modalBody').innerHTML = post.content;
-                document.getElementById('postModal').style.display = 'block';
-            }
-        }
+  <main class="container">
+    <section class="posts-grid" aria-label="Posts">
+      <!-- Card: Communication Toolkit (Web Component) -->
+      <a class="post-card" href="communication-toolkit.html">
+        <div class="artifact-preview" aria-hidden="true">
+          <span>🛠️ Interactive Communication Toolkit</span>
+        </div>
+        <div class="post-header">
+          <h2 class="post-title">Emotional Communication Toolkit</h2>
+          <div class="post-meta">Published on Sep 1, 2025</div>
+          <p class="post-excerpt">
+            An interactive guide for pausing, reframing feedback, and working with resistance.
+          </p>
+          <span class="post-type">Interactive Tool</span>
+        </div>
+      </a>
 
-        function closeModal() {
-            document.getElementById('postModal').style.display = 'none';
-        }
+      <!-- Card: In‑Between Time Tool (Web Component) -->
+      <a class="post-card" href="in-between-widget.html">
+        <div class="artifact-preview" aria-hidden="true">
+          <span>⏳ In‑Between Time Tool</span>
+        </div>
+        <div class="post-header">
+          <h2 class="post-title">The 3‑Box Rule for Unstructured Time</h2>
+          <div class="post-meta">Published on Sep 1, 2025</div>
+          <p class="post-excerpt">
+            Decide fast, not perfectly. Pick a box, lock a task, and go.
+          </p>
+          <span class="post-type">Interactive Tool</span>
+        </div>
+      </a>
+    </section>
+  </main>
 
-        function showAddPost() {
-            alert('To add a new post:\n\n1. Create a new HTML file for your post\n2. Add the post data to the posts object\n3. Create a new post card in the grid\n\nCheck the setup instructions for detailed steps!');
-        }
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2025 My Interactive Blog. Built with ❤️ and hosted on GitHub Pages.</p>
+    </div>
+  </footer>
 
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('postModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-
-        // Add more posts dynamically
-        function addPostToGrid(postData) {
-            const postsGrid = document.getElementById('postsGrid');
-            const postCard = document.createElement('article');
-            postCard.className = 'post-card';
-            postCard.onclick = () => openPost(postData.id);
-            
-            postCard.innerHTML = `
-                <div class="artifact-preview">
-                    <span>${postData.preview}</span>
-                </div>
-                <div class="post-header">
-                    <h2 class="post-title">${postData.title}</h2>
-                    <div class="post-meta">Published on ${postData.date}</div>
-                    <p class="post-excerpt">${postData.excerpt}</p>
-                    <span class="post-type">${postData.type}</span>
-                </div>
-            `;
-            
-            postsGrid.appendChild(postCard);
-        }
-    </script>
+  <!-- No JavaScript needed for this page. If you add any later, use defer: <script src="x.js" defer></script> -->
 </body>
 </html>
